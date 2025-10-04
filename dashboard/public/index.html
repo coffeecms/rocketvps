@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RocketVPS Dashboard v2.2.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 10px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .domain-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .domain-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .domain-item:last-child {
+            border-bottom: none;
+        }
+
+        .domain-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .domain-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .type-wordpress { background: #21759b; color: white; }
+        .type-laravel { background: #ff2d20; color: white; }
+        .type-nodejs { background: #339933; color: white; }
+        .type-static { background: #999; color: white; }
+        .type-php { background: #777bb4; color: white; }
+
+        .health-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .health-healthy { background: #28a745; }
+        .health-warning { background: #ffc107; }
+        .health-critical { background: #dc3545; }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .operations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .operation-btn {
+            padding: 20px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .operation-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .operation-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); }
+            to { transform: translateX(0); }
+        }
+
+        .toast-success { border-left: 4px solid #28a745; }
+        .toast-error { border-left: 4px solid #dc3545; }
+        .toast-info { border-left: 4px solid #17a2b8; }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 RocketVPS Dashboard</h1>
+            <p class="subtitle">Version 2.2.0 - Real-time Monitoring & Management</p>
+        </header>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon">🌐</div>
+                <div class="stat-label">Total Domains</div>
+                <div class="stat-value" id="totalDomains">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">Healthy Domains</div>
+                <div class="stat-value" id="healthyDomains">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💾</div>
+                <div class="stat-label">Total Backups</div>
+                <div class="stat-value" id="totalBackups">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💿</div>
+                <div class="stat-label">Disk Usage</div>
+                <div class="stat-value" id="diskUsage">-</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Domains Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">📂 Domains</h2>
+                    <button class="btn btn-primary" onclick="refreshDomains()">🔄 Refresh</button>
+                </div>
+                <div class="domain-list" id="domainList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading domains...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Operations Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">⚙️ Quick Operations</h2>
+                </div>
+                <div class="operations-grid">
+                    <div class="operation-btn" onclick="runBulkBackup()">
+                        <div class="operation-icon">💾</div>
+                        <div>Bulk Backup</div>
+                    </div>
+                    <div class="operation-btn" onclick="runHealthCheck()">
+                        <div class="operation-icon">🏥</div>
+                        <div>Health Check</div>
+                    </div>
+                    <div class="operation-btn" onclick="updateNginx()">
+                        <div class="operation-icon">⚙️</div>
+                        <div>Update Nginx</div>
+                    </div>
+                    <div class="operation-btn" onclick="fixPermissions()">
+                        <div class="operation-icon">🔒</div>
+                        <div>Fix Permissions</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Panel -->
+            <div class="panel" style="grid-column: 1 / -1;">
+                <div class="panel-header">
+                    <h2 class="panel-title">📊 Operation Progress</h2>
+                </div>
+                <div id="progressContainer" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; color: #666;">
+                        <span>✅ Success: <strong id="progressSuccess">0</strong></span>
+                        <span>❌ Failed: <strong id="progressFailed">0</strong></span>
+                        <span>⏳ In Progress: <strong id="progressInProgress">0</strong></span>
+                        <span>📋 Pending: <strong id="progressPending">0</strong></span>
+                    </div>
+                </div>
+                <div id="noProgress" style="text-align: center; padding: 20px; color: #999;">
+                    No operation in progress
+                </div>
+            </div>
+
+            <!-- System Health Panel -->
+            <div class="panel" style="grid-column: 1 / -1;">
+                <div class="panel-header">
+                    <h2 class="panel-title">🏥 System Health</h2>
+                    <button class="btn btn-success" onclick="refreshSystemHealth()">🔄 Refresh</button>
+                </div>
+                <div id="systemHealth" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading system health...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Socket.IO Client -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        // Configuration
+        const API_BASE = window.location.origin;
+        let socket;
+        let currentUser = null;
+
+        // Check authentication
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/user`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    // Not authenticated, redirect to login
+                    window.location.href = '/login.html';
+                    return false;
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    updateUserInfo();
+                    return true;
+                } else {
+                    window.location.href = '/login.html';
+                    return false;
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/login.html';
+                return false;
+            }
+        }
+
+        // Update user info in header
+        function updateUserInfo() {
+            if (currentUser) {
+                const header = document.querySelector('.dashboard-header h1');
+                header.innerHTML = `🚀 RocketVPS Dashboard <span style="font-size: 14px; color: #a0aec0;">| ${currentUser.username} (${currentUser.role})</span>`;
+            }
+        }
+
+        // Logout function
+        async function logout() {
+            try {
+                await fetch(`${API_BASE}/api/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Logout failed:', error);
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Add logout button to header
+        function addLogoutButton() {
+            const header = document.querySelector('.dashboard-header');
+            const logoutBtn = document.createElement('button');
+            logoutBtn.textContent = '🚪 Logout';
+            logoutBtn.className = 'btn-logout';
+            logoutBtn.onclick = logout;
+            logoutBtn.style.cssText = `
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                padding: 10px 20px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                transition: background 0.2s;
+            `;
+            logoutBtn.onmouseover = () => logoutBtn.style.background = 'rgba(255, 255, 255, 0.3)';
+            logoutBtn.onmouseout = () => logoutBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+            header.style.position = 'relative';
+            header.appendChild(logoutBtn);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication first
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) return;
+            
+            // Add logout button
+            addLogoutButton();
+            
+            // Initialize app
+            initSocket();
+            loadStats();
+            loadDomains();
+            loadSystemHealth();
+            
+            // Auto-refresh stats every 30 seconds
+            setInterval(loadStats, 30000);
+        });
+
+        // Socket.IO initialization
+        function initSocket() {
+            socket = io(API_BASE);
+            
+            socket.on('connect', () => {
+                console.log('Connected to server');
+                socket.emit('subscribe', 'progress');
+                socket.emit('subscribe', 'health');
+            });
+
+            socket.on('progress-update', (data) => {
+                updateProgress(data);
+            });
+
+            socket.on('system-health-update', (data) => {
+                displaySystemHealth(data);
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server');
+            });
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/stats/overview`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalDomains').textContent = data.stats.total_domains;
+                    document.getElementById('healthyDomains').textContent = data.stats.healthy_domains;
+                    document.getElementById('totalBackups').textContent = data.stats.total_backups;
+                    document.getElementById('diskUsage').textContent = data.stats.disk_usage_percent + '%';
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load domains
+        async function loadDomains() {
+            try {
+                const response = await fetch(`${API_BASE}/api/domains`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayDomains(data.domains);
+                }
+            } catch (error) {
+                console.error('Error loading domains:', error);
+                document.getElementById('domainList').innerHTML = '<div class="loading">Error loading domains</div>';
+            }
+        }
+
+        // Display domains
+        function displayDomains(domains) {
+            const container = document.getElementById('domainList');
+            
+            if (domains.length === 0) {
+                container.innerHTML = '<div class="loading">No domains found</div>';
+                return;
+            }
+
+            container.innerHTML = domains.map(domain => `
+                <div class="domain-item">
+                    <div>
+                        <span class="health-status health-healthy"></span>
+                        <span class="domain-name">${domain}</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="backupDomain('${domain}')">💾 Backup</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load system health
+        async function loadSystemHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/api/health/system`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success && data.status) {
+                    displaySystemHealth(data.status);
+                }
+            } catch (error) {
+                console.error('Error loading system health:', error);
+            }
+        }
+
+        // Display system health
+        function displaySystemHealth(status) {
+            const container = document.getElementById('systemHealth');
+            
+            const metrics = [
+                { label: 'Disk Space', value: status.disk_space?.status || 'UNKNOWN', icon: '💿' },
+                { label: 'Memory', value: status.memory?.status || 'UNKNOWN', icon: '🧠' },
+                { label: 'CPU', value: status.cpu?.status || 'UNKNOWN', icon: '⚡' },
+                { label: 'Nginx', value: status.nginx?.status || 'UNKNOWN', icon: '🌐' },
+                { label: 'MySQL', value: status.mysql?.status || 'UNKNOWN', icon: '🗄️' },
+                { label: 'PHP-FPM', value: status.php_fpm?.status || 'UNKNOWN', icon: '🐘' }
+            ];
+
+            container.innerHTML = metrics.map(metric => {
+                const statusClass = metric.value === 'OK' ? 'health-healthy' : 
+                                  metric.value === 'WARNING' ? 'health-warning' : 'health-critical';
+                return `
+                    <div class="stat-card">
+                        <div class="stat-icon">${metric.icon}</div>
+                        <div class="stat-label">${metric.label}</div>
+                        <div style="margin-top: 10px;">
+                            <span class="health-status ${statusClass}"></span>
+                            <span style="font-weight: bold;">${metric.value}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update progress
+        function updateProgress(progress) {
+            const container = document.getElementById('progressContainer');
+            const noProgress = document.getElementById('noProgress');
+            
+            if (progress && progress.status === 'running') {
+                container.style.display = 'block';
+                noProgress.style.display = 'none';
+                
+                const percentage = progress.percentage || 0;
+                document.getElementById('progressFill').style.width = percentage + '%';
+                document.getElementById('progressFill').textContent = percentage + '%';
+                document.getElementById('progressSuccess').textContent = progress.completed || 0;
+                document.getElementById('progressFailed').textContent = progress.failed || 0;
+                document.getElementById('progressInProgress').textContent = progress.in_progress || 0;
+                document.getElementById('progressPending').textContent = progress.remaining || 0;
+            } else {
+                container.style.display = 'none';
+                noProgress.style.display = 'block';
+            }
+        }
+
+        // Operations
+        async function runBulkBackup() {
+            if (!confirm('Run bulk backup for all domains?')) return;
+            
+            showToast('Starting bulk backup...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/bulk/backup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ backup_type: 'auto', parallel: 4 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Bulk backup started!', 'success');
+                } else {
+                    showToast('Failed to start bulk backup', 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function runHealthCheck() {
+            showToast('Running health check...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/health/check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ type: 'all' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Health check completed!', 'success');
+                    setTimeout(() => loadSystemHealth(), 2000);
+                } else {
+                    showToast('Health check failed', 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function backupDomain(domain) {
+            showToast(`Backing up ${domain}...`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/domains/${domain}/backup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ type: 'auto' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(`Backup started for ${domain}`, 'success');
+                } else {
+                    showToast(`Backup failed for ${domain}`, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function updateNginx() {
+            showToast('Nginx update feature coming soon!', 'info');
+        }
+
+        function fixPermissions() {
+            showToast('Fix permissions feature coming soon!', 'info');
+        }
+
+        function refreshDomains() {
+            loadDomains();
+            showToast('Domains refreshed', 'success');
+        }
+
+        function refreshSystemHealth() {
+            loadSystemHealth();
+            showToast('System health refreshed', 'success');
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Refresh stats every 30 seconds
+        setInterval(loadStats, 30000);
+    </script>
+</body>
+</html>
