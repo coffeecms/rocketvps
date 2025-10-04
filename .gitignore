@@ -1,0 +1,12 @@
+.git/
+.vscode/
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+.DS_Store
+config/database.conf
+config/cloud_backup.conf
+backups/
+logs/
